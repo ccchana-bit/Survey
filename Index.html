@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --bg:#f4f8fb; --card:#ffffff; --ink:#16324a; --muted:#657786;
+      --accent:#1f6f8b; --accent2:#2d8fac; --line:#dce7ee; --danger:#b42318;
+      --shadow:0 12px 30px rgba(34,78,102,.10);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#eef6fa 0%,#f9fbfc 60%,#eef5f8 100%);font-family:Tahoma,"Noto Sans Thai",Arial,sans-serif;color:var(--ink);line-height:1.55}
+    .shell{max-width:900px;margin:0 auto;padding:18px 14px 48px}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(244,248,251,.94);backdrop-filter:blur(8px);padding:10px 0 12px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;margin-bottom:8px}
+    .dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+    .progress{height:8px;background:#dfeaf0;border-radius:999px;overflow:hidden}
+    .progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s ease}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;box-shadow:var(--shadow);margin-top:14px}
+    h1{font-size:26px;margin:0 0 10px;line-height:1.3}
+    h2{font-size:21px;margin:0 0 8px}
+    h3{font-size:17px;margin:26px 0 10px}
+    p{margin:8px 0 12px}.muted{color:var(--muted)}
+    .notice{padding:14px 16px;border-radius:14px;background:#eef7fb;border:1px solid #d7ebf3;margin:14px 0}
+    .consent{display:flex;gap:10px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:14px;margin:18px 0;background:#fbfdfe}
+    input[type=checkbox]{width:20px;height:20px;margin-top:2px}
+    .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+    button{border:0;border-radius:13px;padding:12px 20px;font-size:16px;font-weight:700;cursor:pointer}
+    .primary{background:var(--accent);color:white}.primary:disabled{opacity:.45;cursor:not-allowed}.ghost{background:#edf3f6;color:var(--ink)}
+    .stimulus-wrap{text-align:center}.stimulus{width:min(100%,620px);max-height:66vh;object-fit:contain;border-radius:16px;border:1px solid var(--line);box-shadow:0 8px 22px rgba(0,0,0,.08);background:#eee}
+    .timer{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:14px;margin-top:12px}
+    .q{padding:18px 0;border-top:1px solid var(--line)}.q:first-of-type{border-top:0}
+    .q-title{font-weight:700;margin-bottom:10px}.required{color:var(--danger)}
+    .scale{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:8px 0}.scale.scale11{grid-template-columns:repeat(11,1fr)}
+    .scale label{display:flex;align-items:center;justify-content:center;min-height:42px;border:1px solid #cbdbe4;border-radius:10px;cursor:pointer;background:#fff;font-weight:700;font-size:13px}
+    .scale input{display:none}.scale label:has(input:checked){background:#dff1f7;border-color:var(--accent);outline:2px solid rgba(31,111,139,.12)}
+    .scale-ends{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:5px}
+    textarea,input[type=text],input[type=number],select{width:100%;border:1px solid #cbdbe4;border-radius:12px;padding:12px;font-size:15px;background:white;color:var(--ink)}
+    textarea{min-height:90px;resize:vertical}
+    .radio-list{display:grid;gap:8px}.radio-list label{display:flex;align-items:center;gap:10px;border:1px solid var(--line);padding:11px 12px;border-radius:11px;cursor:pointer}.radio-list input{width:18px;height:18px}
+    .error{color:var(--danger);font-size:13px;margin-top:7px;display:none}.q.invalid .error{display:block}.q.invalid>.q-title{color:var(--danger)}
+    .small{font-size:13px}.tag{display:inline-block;padding:5px 9px;border-radius:999px;background:#edf6f9;color:#285c70;font-size:12px;font-weight:700}
+    .loading{display:flex;align-items:center;gap:10px;justify-content:center;padding:30px}.spinner{width:24px;height:24px;border:3px solid #d9e8ef;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    .success{text-align:center;padding:22px}.success .check{font-size:54px;margin-bottom:6px}
+    @media(max-width:640px){.card{padding:20px 16px;border-radius:18px}h1{font-size:22px}.scale{gap:4px}.scale label{min-height:38px;font-size:12px}.scale.scale11{grid-template-columns:repeat(6,1fr)}.scale.scale11 label:nth-child(n+7){margin-top:2px}.actions{position:sticky;bottom:8px;background:rgba(255,255,255,.92);padding:10px;border-radius:15px;box-shadow:0 6px 20px rgba(0,0,0,.08)}}
+  </style>
+</head>
+<body>
+<?!= include('Images'); ?>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span>แบบสอบถามการรับรู้พื้นที่สาธารณะชายฝั่ง</div>
+    <div class="progress"><div id="progressBar"></div></div>
+  </div>
+  <main id="app"></main>
+</div>
+
+<script>
+  const state = {
+    participant_id: sessionStorage.getItem('coastal_pid') || makeId(),
+    condition: sessionStorage.getItem('coastal_condition') || '',
+    consent: false,
+    started_at: new Date().toISOString(),
+    stimulusStarted: null,
+    stimulus_view_seconds: 0,
+    page: 0,
+    responses: {}
+  };
+  sessionStorage.setItem('coastal_pid', state.participant_id);
+
+  const pages = ['consent','stimulus','safety','social','context','checks','profile'];
+  const app = document.getElementById('app');
+
+  function makeId(){
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'p-' + Date.now() + '-' + Math.random().toString(36).slice(2,10);
+  }
+
+  function setProgress(){
+    const pct = Math.max(0, Math.min(100, (state.page / pages.length) * 100));
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  function render(){
+    setProgress();
+    const p = pages[state.page];
+    if (p === 'consent') return renderConsent();
+    if (p === 'stimulus') return renderStimulus();
+    if (p === 'safety') return renderSafety();
+    if (p === 'social') return renderSocial();
+    if (p === 'context') return renderContext();
+    if (p === 'checks') return renderChecks();
+    if (p === 'profile') return renderProfile();
+  }
+
+  function renderConsent(){
+    app.innerHTML = `
+      <section class="card">
+        <span class="tag">Pilot survey</span>
+        <h1>การรับรู้สภาพแวดล้อมของพื้นที่สาธารณะชายฝั่ง</h1>
+        <p>แบบสอบถามนี้มีวัตถุประสงค์เพื่อศึกษาว่าบุคคลรับรู้และประเมินสภาพแวดล้อมของพื้นที่สาธารณะอย่างไร ท่านจะเห็นภาพจำลอง <b>1 ภาพ</b> และตอบตามความรู้สึกแรกที่เกิดขึ้นจากสิ่งที่เห็นในภาพ</p>
+        <div class="notice small">ภาพที่ใช้เป็นภาพจำลองเพื่อการวิจัย ไม่ใช่ภาพเหตุการณ์จริง และบุคคลที่ปรากฏในภาพไม่ได้เป็นบุคคลจริงที่นำมาประเมิน ผลจะนำเสนอในภาพรวมเพื่อวัตถุประสงค์ทางวิชาการ</div>
+        <p class="muted small">ไม่มีคำตอบที่ถูกหรือผิด ท่านสามารถหยุดตอบได้ทุกเมื่อ โดยไม่ต้องระบุเหตุผล</p>
+        <label class="consent"><input id="consentBox" type="checkbox"><span><b>ข้าพเจ้าอายุ 18 ปีขึ้นไป</b> และยินยอมเข้าร่วมการศึกษาโดยสมัครใจ</span></label>
+        <div class="actions"><button class="primary" onclick="startSurvey()">เริ่มตอบแบบสอบถาม</button></div>
+      </section>`;
+  }
+
+  function startSurvey(){
+    const box = document.getElementById('consentBox');
+    if (!box.checked) { alert('กรุณายืนยันความยินยอมก่อนเริ่มตอบแบบสอบถาม'); return; }
+    state.consent = true;
+    app.innerHTML = `<section class="card"><div class="loading"><span class="spinner"></span>กำลังสุ่มภาพสำหรับท่าน…</div></section>`;
+    if (state.condition) { state.page = 1; render(); return; }
+    google.script.run
+      .withSuccessHandler(res => {
+        state.condition = res.condition;
+        sessionStorage.setItem('coastal_condition', state.condition);
+        state.page = 1; render();
+      })
+      .withFailureHandler(err => showFatal(err))
+      .getAssignment(state.participant_id);
+  }
+
+  function renderStimulus(){
+    const src = window.STIMULUS_IMAGES[state.condition];
+    app.innerHTML = `
+      <section class="card stimulus-wrap">
+        <h2>กรุณาพิจารณาภาพต่อไปนี้</h2>
+        <p class="muted">ดูภาพตามธรรมชาติ แล้วตอบคำถามจากความรู้สึกแรกของท่าน</p>
+        <img class="stimulus" src="${src}" alt="ภาพจำลองพื้นที่สาธารณะชายฝั่ง">
+        <div class="timer">◷ <span id="timerText">กรุณาดูภาพอีก 12 วินาที</span></div>
+        <div class="actions"><button id="stimNext" class="primary" disabled onclick="finishStimulus()">ตอบคำถามต่อ</button></div>
+      </section>`;
+    state.stimulusStarted = Date.now();
+    let left = 12;
+    const t = setInterval(() => {
+      left--;
+      const el = document.getElementById('timerText');
+      if (!el) { clearInterval(t); return; }
+      if (left > 0) el.textContent = `กรุณาดูภาพอีก ${left} วินาที`;
+      else {
+        clearInterval(t); el.textContent = 'สามารถตอบคำถามต่อได้';
+        document.getElementById('stimNext').disabled = false;
+      }
+    },1000);
+  }
+
+  function finishStimulus(){
+    state.stimulus_view_seconds = Math.round((Date.now()-state.stimulusStarted)/1000);
+    state.page = 2; render(); window.scrollTo(0,0);
+  }
+
+  function scaleQuestion(id, text, max=7, low='ไม่เห็นด้วยอย่างยิ่ง', high='เห็นด้วยอย่างยิ่ง', required=true){
+    const vals = Array.from({length:max},(_,i)=>i+1);
+    return `<div class="q" data-q="${id}"><div class="q-title">${text}${required?' <span class="required">*</span>':''}</div>
+      <div class="scale ${max>7?'scale11':''}">${vals.map(v=>`<label><input type="radio" name="${id}" value="${v}" ${state.responses[id]==v?'checked':''}>${v}</label>`).join('')}</div>
+      <div class="scale-ends"><span>${low}</span><span>${high}</span></div><div class="error">กรุณาตอบข้อนี้</div></div>`;
+  }
+
+
+  function scaleZeroToTen(id, text, low='0', high='10'){
+    const vals = Array.from({length:11},(_,i)=>i);
+    return `<div class="q" data-q="${id}"><div class="q-title">${text} <span class="required">*</span></div>
+      <div class="scale scale11">${vals.map(v=>`<label><input type="radio" name="${id}" value="${v}" ${state.responses[id]==v?'checked':''}>${v}</label>`).join('')}</div>
+      <div class="scale-ends"><span>${low}</span><span>${high}</span></div><div class="error">กรุณาตอบข้อนี้</div></div>`;
+  }
+
+  function section(title, desc, html, nextFn){
+    app.innerHTML = `<section class="card"><h2>${title}</h2><p class="muted">${desc}</p>${html}<div class="actions"><button class="primary" onclick="${nextFn}()">ถัดไป</button></div></section>`;
+  }
+
+  function renderSafety(){
+    const html = [
+      '<h3>ส่วนที่ 1 ความรู้สึกปลอดภัยในพื้นที่</h3>',
+      scaleQuestion('PS1','หากต้องเข้าไปใช้พื้นที่ตามภาพนี้ ฉันจะรู้สึกปลอดภัย'),
+      scaleQuestion('PS2','ฉันรู้สึกสบายใจที่จะเดินผ่านพื้นที่ตามภาพนี้'),
+      scaleQuestion('PS3','ฉันรู้สึกมั่นใจที่จะหยุดพักหรือทำกิจกรรมในพื้นที่นี้'),
+      scaleQuestion('PS4','ฉันรู้สึกว่าสามารถอยู่ในบริเวณนี้ได้โดยไม่ต้องระมัดระวังตัวมากเกินไป'),
+      '<h3>ส่วนที่ 2 ความไว้วางใจต่อสภาพแวดล้อมทางสังคม</h3>',
+      scaleQuestion('ST1','โดยรวมแล้ว ฉันรู้สึกว่าสามารถไว้วางใจผู้คนที่อยู่ในพื้นที่นี้ได้'),
+      scaleQuestion('ST2','หากเกิดเหตุฉุกเฉิน ฉันคิดว่าผู้คนในบริเวณนี้น่าจะให้ความช่วยเหลือ'),
+      scaleZeroToTen('ST3','สมมติว่าท่านทำกระเป๋าสตางค์ตกในพื้นที่ตามภาพ และมีผู้ใช้พื้นที่คนหนึ่งพบกระเป๋า ท่านคิดว่ามีโอกาสมากน้อยเพียงใดที่บุคคลนั้นจะคืนกระเป๋าพร้อมทรัพย์สินภายในครบถ้วน?','ไม่มีโอกาสเลย','มีโอกาสอย่างมาก')
+    ].join('');
+    section('การประเมินพื้นที่','โปรดตอบตามความรู้สึกแรกจากภาพที่ท่านเห็น',html,'saveSafety');
+  }
+
+  function saveSafety(){ if(!saveRadios(['PS1','PS2','PS3','PS4','ST1','ST2','ST3'])) return; state.page=3; render(); window.scrollTo(0,0); }
+
+  function renderSocial(){
+    const html = [
+      '<h3>ส่วนที่ 3 ความสบายใจในการอยู่ร่วมกับผู้ใช้พื้นที่</h3>',
+      scaleQuestion('SC1','ฉันรู้สึกสบายใจที่จะอยู่ร่วมกับผู้คนในพื้นที่ตามภาพนี้'),
+      scaleQuestion('SC2','ฉันรู้สึกว่าสามารถมีปฏิสัมพันธ์กับผู้คนในพื้นที่นี้ได้ตามปกติ'),
+      scaleQuestion('SC3','หากต้องอยู่ในพื้นที่นี้เป็นเวลานาน ฉันจะรู้สึกผ่อนคลาย'),
+      scaleQuestion('SC4','ฉันรู้สึกไม่แน่ใจว่าจะปฏิสัมพันธ์กับผู้คนในพื้นที่นี้อย่างไร'),
+      '<h3>ส่วนที่ 4 ความตั้งใจใช้พื้นที่</h3>',
+      scaleQuestion('BI1','หากฉันอยู่บริเวณใกล้เคียง ฉันมีแนวโน้มที่จะเข้าไปใช้พื้นที่นี้'),
+      scaleQuestion('BI2','ฉันเต็มใจที่จะหยุดพักหรือทำกิจกรรมในพื้นที่นี้'),
+      scaleQuestion('BI3','ฉันยินดีที่จะกลับมาใช้พื้นที่ลักษณะนี้อีกในอนาคต'),
+      scaleQuestion('BI4','หากมีพื้นที่หรือเส้นทางอื่นให้เลือก ฉันมีแนวโน้มที่จะหลีกเลี่ยงพื้นที่นี้')
+    ].join('');
+    section('ความรู้สึกและความตั้งใจ','ใช้มาตร 1–7 เช่นเดียวกับหน้าก่อน',html,'saveSocial');
+  }
+  function saveSocial(){ if(!saveRadios(['SC1','SC2','SC3','SC4','BI1','BI2','BI3','BI4'])) return; state.page=4; render(); window.scrollTo(0,0); }
+
+  function renderContext(){
+    const html = [
+      '<h3>ส่วนที่ 5 ความคุ้นเคยและประสบการณ์ทางสังคม</h3>',
+      scaleQuestion('FC1','ในชีวิตประจำวัน ท่านมีโอกาสพบปะหรือพูดคุยกับบุคคลที่มีศาสนาหรือวัฒนธรรมแตกต่างจากท่านบ่อยเพียงใด',7,'ไม่เคย','เป็นประจำมาก'),
+      scaleQuestion('FC2','ท่านมีเพื่อนสนิท เพื่อนร่วมงาน หรือบุคคลใกล้ชิดที่มีศาสนาหรือวัฒนธรรมแตกต่างจากท่านมากน้อยเพียงใด',7,'ไม่มีเลย','มีจำนวนมาก'),
+      scaleQuestion('FC3','โดยทั่วไป ท่านรู้สึกคุ้นเคยกับการอยู่ในสังคมที่มีความหลากหลายทางวัฒนธรรมและศาสนาเพียงใด',7,'ไม่คุ้นเคยเลย','คุ้นเคยมาก'),
+      scaleQuestion('PF1','ท่านคุ้นเคยกับจังหวัดสงขลามากน้อยเพียงใด',7,'ไม่คุ้นเคยเลย','คุ้นเคยมาก'),
+      radioBlock('PF2','ท่านเคยใช้พื้นที่สาธารณะชายฝั่งในจังหวัดสงขลา เช่น หาดสมิหลา หาดชลาทัศน์ หรือพื้นที่ใกล้เคียงหรือไม่?',['ไม่เคย','เคย 1–2 ครั้ง','เคยเป็นครั้งคราว','ใช้เป็นประจำ/ค่อนข้างบ่อย']),
+      radioBlock('PF3','ท่านอาศัยหรือเคยอาศัยอยู่ในจังหวัดสงขลาหรือพื้นที่ใกล้เคียงหรือไม่?',['ไม่เคย','เคย','ปัจจุบันอาศัยอยู่'])
+    ].join('');
+    section('ประสบการณ์และความคุ้นเคย','ข้อมูลส่วนนี้ช่วยอธิบายว่าประสบการณ์เดิมสัมพันธ์กับการรับรู้พื้นที่อย่างไร',html,'saveContext');
+  }
+  function saveContext(){ if(!saveRadios(['FC1','FC2','FC3','PF1','PF2','PF3'])) return; state.page=5; render(); window.scrollTo(0,0); }
+
+  function renderChecks(){
+    const html = [
+      '<h3>ส่วนที่ 6 การรับรู้ภาพทดลอง</h3>',
+      scaleQuestion('MC1','ภาพนี้ทำให้ท่านรับรู้ถึงความหลากหลายทางสังคม–วัฒนธรรมของผู้ใช้พื้นที่มากน้อยเพียงใด',7,'ไม่รับรู้เลย','รับรู้ชัดเจนมาก'),
+      scaleQuestion('MC2','ท่านสังเกตเห็นสิ่งบ่งชี้ด้านวัฒนธรรมหรือศาสนาจากบุคคลในภาพมากน้อยเพียงใด',7,'ไม่เห็นเลย','เห็นชัดเจนมาก'),
+      textBlock('MC3','องค์ประกอบใดในภาพที่ท่านสังเกตเห็นเป็นอันดับแรก?',true),
+      '<h3>ส่วนที่ 7 การประเมินลักษณะของภาพ</h3>',
+      scaleQuestion('CC1','ความสว่างของพื้นที่',7,'น้อยมาก','มาก'),
+      scaleQuestion('CC2','ความสะอาดและเป็นระเบียบ',7,'น้อยมาก','มาก'),
+      scaleQuestion('CC3','ความเปิดโล่ง/มองเห็นได้ชัด',7,'น้อยมาก','มาก'),
+      scaleQuestion('CC4','ความหนาแน่นของผู้คน',7,'น้อยมาก','มาก'),
+      scaleQuestion('CC5','ความน่าใช้ของพื้นที่โดยรวม',7,'น้อยมาก','มาก')
+    ].join('');
+    section('การรับรู้ภาพ','คำถามช่วงนี้ใช้ตรวจสอบว่าภาพทดลองสื่อสิ่งที่ผู้วิจัยตั้งใจหรือไม่',html,'saveChecks');
+  }
+  function saveChecks(){ if(!saveRadios(['MC1','MC2','CC1','CC2','CC3','CC4','CC5'])) return; if(!saveTexts(['MC3'])) return; state.page=6; render(); window.scrollTo(0,0); }
+
+  function renderProfile(){
+    const html = [
+      '<h3>ส่วนที่ 8 ข้อมูลทั่วไป</h3>',
+      radioBlock('G1','เพศ',['หญิง','ชาย','อื่น ๆ','ไม่ประสงค์ระบุ']),
+      numberBlock('G2','อายุ (ปี)',18,100,true),
+      textBlock('G3','จังหวัดที่พำนักปัจจุบัน',true),
+      radioBlock('G4','ระดับการศึกษาสูงสุด',['ต่ำกว่าปริญญาตรี','ปริญญาตรี','สูงกว่าปริญญาตรี','อื่น ๆ']),
+      radioBlock('G5','ศาสนา/ความเชื่อ (สมัครใจตอบ)',['พุทธ','อิสลาม','คริสต์','อื่น ๆ','ไม่มีศาสนา','ไม่ประสงค์ระบุ'],false),
+      radioBlock('G6','ท่านกำลังตอบแบบสอบถามจากมุมมองใดมากที่สุด',['คนในพื้นที่/ผู้ใช้พื้นที่เป็นประจำ','ผู้มาเยือน/นักท่องเที่ยว','ไม่แน่ใจ/อื่น ๆ']),
+      '<h3>คำถามสำหรับการทดลองใช้เครื่องมือ</h3>',
+      textBlock('P1','มีข้อคำถามใดที่ท่านอ่านแล้วไม่เข้าใจหรือไม่?',false),
+      textBlock('P2','ท่านคิดว่าแบบสอบถามนี้กำลังศึกษาประเด็นใด?',false),
+      textBlock('P3','มีองค์ประกอบใดในภาพที่ดูผิดธรรมชาติหรือเหมือนภาพที่ถูกสร้าง/แก้ไขมากเกินไปหรือไม่?',false)
+    ].join('');
+    app.innerHTML = `<section class="card"><h2>ข้อมูลทั่วไปและข้อเสนอแนะ</h2><p class="muted">ข้อศาสนา/ความเชื่อเป็นคำถามสมัครใจ สามารถเลือก “ไม่ประสงค์ระบุ” หรือเว้นว่างได้</p>${html}<div class="actions"><button id="submitBtn" class="primary" onclick="submitSurvey()">ส่งแบบสอบถาม</button></div></section>`;
+  }
+
+  function radioBlock(id,text,opts,required=true){
+    return `<div class="q" data-q="${id}"><div class="q-title">${text}${required?' <span class="required">*</span>':''}</div><div class="radio-list">${opts.map(o=>`<label><input type="radio" name="${id}" value="${esc(o)}" ${state.responses[id]===o?'checked':''}>${o}</label>`).join('')}</div><div class="error">กรุณาตอบข้อนี้</div></div>`;
+  }
+  function textBlock(id,text,required=false){
+    const v = state.responses[id] || '';
+    return `<div class="q" data-q="${id}"><div class="q-title">${text}${required?' <span class="required">*</span>':''}</div><textarea id="${id}">${esc(v)}</textarea><div class="error">กรุณาตอบข้อนี้</div></div>`;
+  }
+  function numberBlock(id,text,min,max,required=true){
+    return `<div class="q" data-q="${id}"><div class="q-title">${text}${required?' <span class="required">*</span>':''}</div><input id="${id}" type="number" min="${min}" max="${max}" value="${state.responses[id]||''}"><div class="error">กรุณากรอกข้อมูลให้ถูกต้อง</div></div>`;
+  }
+
+  function saveRadios(ids){
+    let ok=true;
+    ids.forEach(id=>{
+      const q=document.querySelector(`[data-q="${id}"]`); if(q) q.classList.remove('invalid');
+      const el=document.querySelector(`input[name="${id}"]:checked`);
+      if(!el){ if(q) q.classList.add('invalid'); ok=false; }
+      else state.responses[id]=el.value;
+    });
+    if(!ok) scrollFirstInvalid();
+    return ok;
+  }
+  function saveTexts(ids){
+    let ok=true;
+    ids.forEach(id=>{
+      const q=document.querySelector(`[data-q="${id}"]`); if(q) q.classList.remove('invalid');
+      const el=document.getElementById(id); const v=(el?.value||'').trim();
+      if(!v){ if(q) q.classList.add('invalid'); ok=false; } else state.responses[id]=v;
+    });
+    if(!ok) scrollFirstInvalid(); return ok;
+  }
+  function scrollFirstInvalid(){ const x=document.querySelector('.q.invalid'); if(x) x.scrollIntoView({behavior:'smooth',block:'center'}); }
+
+  function submitSurvey(){
+    if(!saveRadios(['G1','G4','G6'])) return;
+    const age = document.getElementById('G2'); const qAge=document.querySelector('[data-q="G2"]'); qAge.classList.remove('invalid');
+    if(!age.value || +age.value<18 || +age.value>100){ qAge.classList.add('invalid'); scrollFirstInvalid(); return; }
+    state.responses.G2=age.value;
+    const province=document.getElementById('G3'); const qP=document.querySelector('[data-q="G3"]'); qP.classList.remove('invalid');
+    if(!province.value.trim()){qP.classList.add('invalid');scrollFirstInvalid();return;} state.responses.G3=province.value.trim();
+    const g5=document.querySelector('input[name="G5"]:checked'); state.responses.G5=g5?g5.value:'';
+    ['P1','P2','P3'].forEach(id=>state.responses[id]=(document.getElementById(id)?.value||'').trim());
+
+    const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='กำลังส่งข้อมูล…';
+    const payload = {
+      submitted_at:'', participant_id:state.participant_id, condition:state.condition, consent:true,
+      stimulus_view_seconds:state.stimulus_view_seconds,
+      ...state.responses,
+      started_at:state.started_at,
+      completed_at:new Date().toISOString(),
+      user_agent:navigator.userAgent,
+      screen_size:`${window.screen.width}x${window.screen.height}`
+    };
+    google.script.run
+      .withSuccessHandler(()=>showThanks())
+      .withFailureHandler(err=>{btn.disabled=false;btn.textContent='ส่งแบบสอบถาม';alert('ส่งข้อมูลไม่สำเร็จ: '+(err.message||err));})
+      .saveResponse(payload);
+  }
+
+  function showThanks(){
+    state.page=pages.length; setProgress(); document.getElementById('progressBar').style.width='100%';
+    app.innerHTML=`<section class="card success"><div class="check">✓</div><h2>ขอบคุณสำหรับการเข้าร่วม</h2><p>ระบบบันทึกคำตอบเรียบร้อยแล้ว</p><p class="muted small">รหัสผู้ตอบ: ${state.participant_id.slice(0,8)}</p></section>`;
+    sessionStorage.removeItem('coastal_condition'); sessionStorage.removeItem('coastal_pid');
+  }
+  function showFatal(err){ app.innerHTML=`<section class="card"><h2>ไม่สามารถเปิดแบบสอบถามได้</h2><p>${esc(err.message||String(err))}</p><p class="muted">กรุณาติดต่อผู้วิจัยหรือลองใหม่ภายหลัง</p></section>`; }
+  function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+  render();
+</script>
+</body>
+</html>
